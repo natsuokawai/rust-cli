@@ -1,5 +1,13 @@
 use std::fs::File;
 use std::io::prelude::*;
+use std::io::{self, Write};
+
+pub fn run<W: Write>(w: &mut W, filenames: Vec<String>) -> io::Result<()> {
+    for name in filenames {
+        write!(w, "{}", open_and_read_file(&name)).expect("fail to write");
+    }
+    Ok(())
+}
 
 fn open_and_read_file(filename: &str) -> String {
     let mut f = File::open(filename).expect("file not found");
@@ -11,12 +19,28 @@ fn open_and_read_file(filename: &str) -> String {
 
 #[cfg(test)]
 mod tests {
-    use crate::open_and_read_file;
+
+    #[test]
+    fn test_run() {
+        use crate::run;
+        let expected = b"foo\nbar\n";
+        let mut buf = Vec::<u8>::new();
+        let result = run(
+            &mut buf,
+            vec![
+                "./tests/data/example1.txt".to_string(),
+                "./tests/data/example2.txt".to_string(),
+            ],
+        );
+        assert!(result.is_ok());
+        assert_eq!(buf, expected);
+    }
 
     #[test]
     fn test_open_and_read_file() {
-        let expected = "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.\n";
-        let acutually = open_and_read_file("./tests/data/example.txt");
-        assert_eq!(expected, acutually);
+        use crate::open_and_read_file;
+        let expected = "foo\n";
+        let result = open_and_read_file("./tests/data/example1.txt");
+        assert_eq!(expected, result);
     }
 }
