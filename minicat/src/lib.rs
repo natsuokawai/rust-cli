@@ -4,17 +4,21 @@ use std::io::{self, Write};
 
 pub fn run<W: Write>(w: &mut W, filenames: Vec<String>) -> io::Result<()> {
     for name in filenames {
-        write!(w, "{}", open_and_read_file(&name)).expect("fail to write");
+        match open_and_read_file(&name) {
+            Ok(content) => write!(w, "{}", content).unwrap(),
+            Err(message) => eprintln!("{}", message),
+        }
     }
     Ok(())
 }
 
-fn open_and_read_file(filename: &str) -> String {
+fn open_and_read_file(filename: &str) -> Result<String, String> {
     let mut f = File::open(filename).expect("file not found");
-    let mut contents = String::new();
-    f.read_to_string(&mut contents)
-        .expect("something went wrong reading the file");
-    return contents;
+    let mut content = String::new();
+    match f.read_to_string(&mut content) {
+        Ok(_) => return Ok(content),
+        Err(_) => return Err(format!("minicat: {}: No such file or directory", filename)),
+    }
 }
 
 #[cfg(test)]
@@ -40,7 +44,7 @@ mod tests {
     fn test_open_and_read_file() {
         use crate::open_and_read_file;
         let expected = "foo\n";
-        let result = open_and_read_file("./tests/data/example1.txt");
+        let result = open_and_read_file("./tests/data/example1.txt").unwrap();
         assert_eq!(expected, result);
     }
 }
