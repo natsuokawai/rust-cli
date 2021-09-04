@@ -5,7 +5,7 @@ use std::io::{self, Write};
 pub fn run<W: Write>(w: &mut W, filenames: Vec<String>) -> io::Result<()> {
     for name in filenames {
         match open_and_read_file(&name) {
-            Ok(content) => write!(w, "{}", content).unwrap(),
+            Ok(content) => write!(w, "{}", content)?,
             Err(message) => eprintln!("{}", message),
         }
     }
@@ -13,17 +13,20 @@ pub fn run<W: Write>(w: &mut W, filenames: Vec<String>) -> io::Result<()> {
 }
 
 fn open_and_read_file(filename: &str) -> Result<String, String> {
-    let mut f = File::open(filename).expect("file not found");
+    let mut f: File;
+    match File::open(filename) {
+        Ok(file) => f = file,
+        Err(_) => return Err(format!("minicat: {}: No such file or directory", filename)),
+    }
     let mut content = String::new();
     match f.read_to_string(&mut content) {
         Ok(_) => return Ok(content),
-        Err(_) => return Err(format!("minicat: {}: No such file or directory", filename)),
+        Err(_) => return Err(format!("minicat: {}: Failed to read file", filename)),
     }
 }
 
 #[cfg(test)]
 mod tests {
-
     #[test]
     fn test_run() {
         use crate::run;
