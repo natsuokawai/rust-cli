@@ -2,6 +2,20 @@ use std::fs::File;
 use std::io::prelude::*;
 use std::io::{self, Write};
 
+struct Config {
+    filenames: Vec<String>,
+}
+
+impl Config {
+    fn new(args: &[String]) -> Config {
+        let mut filenames: Vec<String> = Vec::new();
+        if args.len() > 1 {
+            filenames = args[1..].to_vec();
+        }
+        Config { filenames }
+    }
+}
+
 pub fn run<W: Write>(w: &mut W, filenames: Vec<String>) -> io::Result<()> {
     for name in filenames {
         match open_and_read_file(&name) {
